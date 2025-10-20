@@ -3,43 +3,58 @@ from rest_framework.response import Response
 from rest_framework import status
 from .affiliate_university_serializer import AffiliateUniversitySerializer
 from .services import AffiliatedUniversityService
-class AffiliatedUniversityAPIView(APIView):
-    services = AffiliatedUniversityService()
+from rest_framework import generics
+from .models import AffiliatedUniversity
 
-    def get(self, request, pk=None):
-        id_query = request.query_params.get('id', None)
-        print("Search Query:", id_query)
-        """Retrieve a list of universities or a single university."""
-        try:
-            if pk is not None and isinstance(pk, int):  # Ensure pk is an integer
-                affiliation_university = self.services.get_affiliation_university(pk)
-                serializer = AffiliateUniversitySerializer(affiliation_university)
-                return Response(serializer.data)
-            affiliation_universities = self.services.get_all_affiliation_university()
-            serializer = AffiliateUniversitySerializer(affiliation_universities, many=True)
-            return Response(serializer.data)
-        except Exception as e:
-            return Response({"error": f"University not found: {e}"}, status=404)
+class AffiliatedUniversityListCreateView(generics.ListCreateAPIView):
+    """
+    This view handles the listing and creating of universities.
+    """
+    serializer_class = AffiliateUniversitySerializer
+    service = AffiliatedUniversityService()
 
-    def post(self, request):
-        """Create a new university."""
-        serializer = AffiliateUniversitySerializer(data=request.data)
-        if serializer.is_valid():
-            university_data = serializer.validated_data
-            affiliation_university = self.services.create_affiliated_university(university_data)
-            affiliation_university_serializer = AffiliateUniversitySerializer(affiliation_university)
-            return Response(affiliation_university_serializer.data, status=status.HTTP_201_CREATED)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    def get_queryset(self):
+        """
+        Return the list of affiliated universities.
+        """
+        return self.service.get_all_affiliation_university()
 
-    def put(self, request, pk=None):
-        """Update an existing university."""
-        updated_data = request.data
-        affiliation_university = self.services.update_affiliation_university(pk, updated_data)
-        serializer = AffiliateUniversitySerializer(affiliation_university)
-        return Response(serializer.data)
+    def perform_create(self, serializer):
+        """
+        Save the new university instance created.
+        """
+        university_data = serializer.validated_data
+        return self.service.create_affiliated_university(university_data)
 
-    def delete(self, pk=None):
-        """Delete an existing university."""
-        self.services.remove_affiliation_university(pk)
-        return Response(status=status.HTTP_204_NO_CONTENT)
+class AffiliatedUniversityDetailView(generics.RetrieveUpdateDestroyAPIView):
+    """
+    This view handles retrieving, updating, and deleting a university.
+    """
+    queryset = AffiliatedUniversity.objects.all()
+    serializer_class = AffiliateUniversitySerializer
+    service = AffiliatedUniversityService()
 
+    def get_object(self):
+        """
+        Get a specific university by ID (pk).
+        """
+        university_id = self.kwargs["pk"]
+        university = self.service.get_affiliation_university(university_id)
+        if not university:
+            raise Exception("University not found")
+        return university
+
+    def perform_update(self, serializer):
+        """
+        Save the updated university instance.
+        """
+        updated_data = serializer.validated_data
+        university_id = self.kwargs["pk"]
+        return self.service.update_affiliation_university(university_id, updated_data)
+
+    def perform_destroy(self, instance):
+        """
+        Delete a university instance.
+        """
+        university_id = instance.id
+        return self.service.remove_affiliation_university(university_id)

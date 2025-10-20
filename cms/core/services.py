@@ -1,34 +1,19 @@
-from .models import AffiliatedUniversity
+from .repositories import AffiliatedUniversityRepository
 
 class AffiliatedUniversityService:
-    @staticmethod
-    def create_affiliated_university( affiliation):
-        """create affiliated university"""
-        affiliation_university = AffiliatedUniversity.objects.create(**affiliation)
-        return affiliation_university
+    repository = AffiliatedUniversityRepository()
 
-    @staticmethod
-    def get_all_affiliation_university():
-        """get affiliation university"""
-        return AffiliatedUniversity.objects.all()
+    def get_all_affiliation_university(self):
+        return self.repository.get_all()
 
-    @staticmethod
-    def get_affiliation_university( affiliation_id):
-        """get affiliation university"""
-        return AffiliatedUniversity.objects.get(id=affiliation_id)
+    def get_affiliation_university(self, affiliation_id):
+        return self.repository.get_by_id(affiliation_id)
 
-    @staticmethod
-    def update_affiliation_university(self, affiliation_id, updated_affiliation_university):
-        """update affiliation university"""
-        affiliation_university = self.get_affiliation_university(affiliation_id)
-        for field, value in updated_affiliation_university.items():
-            setattr(affiliation_university, field, value)
-        affiliation_university.save()
-        return affiliation_university
+    def create_affiliated_university(self, data):
+        return self.repository.create(data)
 
-    @staticmethod
+    def update_affiliation_university(self, affiliation_id, data):
+        return self.repository.update(affiliation_id, data)
+
     def remove_affiliation_university(self, affiliation_id):
-        """get affiliation university"""
-        affiliation_university = self.get_affiliation_university(affiliation_id)
-        affiliation_university.delete()
-        return affiliation_university
+        return self.repository.delete(affiliation_id)

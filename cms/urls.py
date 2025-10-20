@@ -1,6 +1,6 @@
 from django.urls import  path
 from rest_framework import permissions
-from .core.views import AffiliatedUniversityAPIView
+from .core.views import AffiliatedUniversityListCreateView, AffiliatedUniversityDetailView
 from .core.view.stories_commands import StoriesCreateView, StoriesUpdateView, StoriesDeleteView
 from .core.view.stories_queries import StoryListView, StoryDetailView
 from drf_yasg.views import get_schema_view
@@ -24,10 +24,15 @@ schema_view = get_schema_view(
 
 
 urlpatterns = [
-    # path('affiliated_universities/', AffiliatedUniversityAPIView.as_view(), name='affiliated_university'),
-    # path('affiliated_universities/<int:pk>/', AffiliatedUniversityAPIView.as_view(), name='affiliated_university_detail'),
 
-# query
+    path('affiliated_universities/', AffiliatedUniversityListCreateView.as_view(),
+         name='affiliated_university_list_create'),
+
+    # Retrieve, update or delete a specific university by ID
+    path('affiliated_universities/<int:pk>/', AffiliatedUniversityDetailView.as_view(),
+         name='affiliated_university_detail'),
+
+    # query
     path('stories/', StoryListView.as_view(), name='stories_list'),
     path('stories/<int:pk>/', StoryDetailView.as_view(), name='story_detail'),
 
